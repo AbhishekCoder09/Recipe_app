@@ -6,6 +6,7 @@ from models import db, User
 
 app = Flask(__name__)
 
+
 # Configuration
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'  # Used for session encryption
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # SQLite database file
@@ -129,6 +130,7 @@ def logout():
 
 # Recipe Routes (Protected)
 
+
 @app.route('/home', methods=['GET'])
 @login_required
 def home():
@@ -138,7 +140,6 @@ def home():
 @login_required
 def index():
     if request.method == 'POST':
-        # If a form is submitted
         query = request.form.get('search_query', '')
         recipes = search_recipes(query)
         return render_template('index.html', recipes=recipes, search_query=query)
@@ -184,9 +185,11 @@ def view_recipe(recipe_id):
         return render_template('view_recipe.html', recipe=recipe, search_query=search_query)
     return "Recipe not found", 404
 
+
 # Database initialization
 with app.app_context():
     db.create_all()  # Create database tables if they don't exist
+
 
 if __name__ == '__main__':
     app.run(debug=True)
