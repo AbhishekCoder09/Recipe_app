@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Login - Recipe App</title>
+    <title>Register - Recipe App</title>
     <style>
         body {
             text-align: center;
@@ -51,7 +51,7 @@
         input[type="submit"] {
             width: 100%;
             padding: 12px;
-            background-color: #4CAF50;
+            background-color: #2196F3;
             color: white;
             border: none;
             border-radius: 4px;
@@ -61,7 +61,7 @@
         }
 
         input[type="submit"]:hover {
-            background-color: #45a049;
+            background-color: #1976D2;
         }
 
         .message {
@@ -95,12 +95,18 @@
         .link-text a:hover {
             text-decoration: underline;
         }
+
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
     </style>
 </head>
 
 <body>
     <div class="auth-container">
-        <h1>🍳 Recipe App Login</h1>
+        <h1>🍳 Create Account</h1>
 
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -111,7 +117,12 @@
         {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('register') }}">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required placeholder="Choose a username">
+            </div>
+
             <div class="form-group">
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" required placeholder="Enter your email">
@@ -119,14 +130,21 @@
 
             <div class="form-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required placeholder="Enter your password">
+                <input type="password" id="password" name="password" required placeholder="Create a password">
+                <p class="hint">Must be at least 6 characters long</p>
             </div>
 
-            <input type="submit" value="Login">
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required
+                    placeholder="Confirm your password">
+            </div>
+
+            <input type="submit" value="Register">
         </form>
 
         <p class="link-text">
-            Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
+            Already have an account? <a href="{{ url_for('login') }}">Login here</a>
         </p>
     </div>
 </body>

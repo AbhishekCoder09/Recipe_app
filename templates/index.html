@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Recipe App</title>
     <style>
@@ -8,22 +9,27 @@
             margin: 40px;
             font-family: Arial, Helvetica, sans-serif;
         }
+
         h1 {
             margin-bottom: 20px;
         }
+
         form {
             margin-bottom: 20px;
         }
+
         ul {
             list-style: none;
             padding: 0;
         }
+
         li {
             display: inline-block;
             text-align: center;
             margin: 10px;
             width: 200px;
         }
+
         .recipe-title {
             font-size: 16px;
             line-height: 1.2;
@@ -32,17 +38,20 @@
             text-overflow: ellipsis;
             white-space: normal;
         }
+
         img {
             display: block;
             margin: 0 auto;
             max-width: 200px;
         }
+
         a {
             display: inline-block;
             margin-top: 10px;
             color: blue;
             text-decoration: underline;
         }
+
         .home-button {
             display: inline-block;
             margin-top: 10px;
@@ -50,23 +59,53 @@
             color: blue;
             text-decoration: underline;
         }
+
         .recipe-details {
             max-width: 600px;
             margin: 0 auto;
             border: 2px solid #ccc;
             padding: 20px;
         }
+
         .section-title {
             text-align: left;
             margin-bottom: 10px;
         }
-        .ingredient-list, .instrction-list {
+
+        .ingredient-list,
+        .instrction-list {
             text-align: left;
         }
     </style>
 </head>
+
 <body>
     <h1>Recipe App</h1>
+
+    <!-- User info and authentication links -->
+    <div style="margin-bottom: 20px;">
+        {% if current_user.is_authenticated %}
+        <span style="color: #4CAF50; font-weight: bold;">Welcome, {{ current_user.username }}!</span>
+        <a href="{{ url_for('logout') }}" style="margin-left: 15px; color: #f44336;">Logout</a>
+        {% endif %}
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for category, message in messages %}
+        <div style="padding: 10px; margin: 5px auto; max-width: 600px; border-radius: 4px; 
+                        {% if category == 'error' %}background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
+                        {% elif category == 'success' %}background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
+                        {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <form method="POST" action="/">
         <input type="text" name="search_query" placeholder="Search for recipes">
         <input type="submit" value="Search">
@@ -92,4 +131,5 @@
     <p>No recipes found.</p>
     {% endif %}
 </body>
+
 </html>

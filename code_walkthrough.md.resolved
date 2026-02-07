@@ -1,0 +1,206 @@
+# Code Walkthrough: Recipe App
+
+This document explains the entire codebase of your Recipe App, line by line, designed for a beginner. It also covers how the frontend and backend are connected and interact.
+
+## 1. Overview
+Your application is a web-based **Recipe Finder**. 
+- **Backend (Python/Flask)**: Handles logic, talks to the Spoonacular API to get recipes, and decides what to show the user.
+- **Frontend (HTML/CSS)**: Displays the recipes to the user in the browser.
+
+---
+
+## 2. Backend Explanation ([app.py](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py))
+This file is the "brain" of your application. It runs on the server.
+
+### Imports
+```python
+1: from flask import Flask, render_template, request
+2: import requests
+3: from urllib.parse import unquote
+```
+- **Line 1**: We import tools from `flask`.
+    - `Flask`: The main class to create the app.
+    - `render_template`: A function to load HTML files from the `templates` folder and send them to the user.
+    - `request`: Represents the data the user sent us (like what they typed in the search bar).
+- **Line 2**: `import requests`. This is a tool to let Python visit other websites. We use it to talk to the *Spoonacular API* to search for recipes.
+- **Line 3**: `unquote` is a utility to decode text. For example, replacing `%20` with a space.
+
+### App Setup
+```python
+5: app = Flask(__name__)
+```
+- **Line 5**: Creates the Flask application instance. `__name__` tells Flask where the code is running so it can find files like templates.
+
+### Configuration
+```python
+7: API_KEY = '4f5f9394507c4419a5caf4b45e00c673'
+```
+- **Line 7**: This is your secret key for the Spoonacular API. It's like a password that tells Spoonacular who is asking for data.
+
+### The Home Route
+```python
+9: @app.route('/home', methods=['GET'])
+10: def home():
+11:     return render_template('index.html', recipes=[], search_query='')
+```
+- **Line 9**: `@app.route('/home')`. This is a **decorator**. It tells Flask: "When a user visits `www.your-site.com/home`, run the function below."
+- **Line 10**: Defines the function [home()](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py#9-12).
+- **Line 11**: `render_template`. It opens [templates/index.html](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/templates/index.html) and sends it to the browser. We pass empty [recipes](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py#26-42) because we aren't searching for anything yet.
+
+### The Main Index Route (Search Logic)
+```python
+13: @app.route('/', methods=['GET', 'POST'])
+14: def index():
+```
+- **Line 13**: This handles the root URL (`/`). It accepts both `GET` (viewing the page) and `POST` (submitting a form).
+
+```python
+15:     if request.method == 'POST':
+16:         # If a form is submitted
+17:         query = request.form.get('search_query', '')
+18:         recipes = search_recipes(query)
+19:         return render_template('index.html', recipes=recipes, search_query=query)
+```
+- **Line 15**: Checks if the user clicked the "Search" button (sent a POST request).
+- **Line 17**: `request.form.get('search_query')`. Grabs the text the user typed in the input box named `search_query`.
+- **Line 18**: Calls our helper function [search_recipes(query)](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py#26-42) to get a list of recipes.
+- **Line 19**: Reloads the page ([index.html](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/templates/index.html)), but this time passes the [recipes](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py#26-42) list we found so the HTML can display them.
+
+```python
+21:     search_query = request.args.get('search_query', '')
+22:     decoded_search_query = unquote(search_query)
+23:     recipes = search_recipes(decoded_search_query)
+24:     return render_template('index.html', recipes=recipes, search_query=decoded_search_query)
+```
+- **Lines 21-24**: This handles the `GET` case (e.g., if you visit `/` directly or come back from another page). It tries to see if there's a search term in the URL (like `/?search_query=pasta`) and displays results if so.
+
+### Helper Function: [search_recipes](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py#26-42)
+```python
+26: def search_recipes(query):
+27:     url = f'https://api.spoonacular.com/recipes/complexSearch'
+28:     params = {
+29:         'apiKey': API_KEY,
+30:         'query': query,
+31:         'number': 10,
+...
+37:     response = requests.get(url, params=params)
+38:     if response.status_code == 200:
+39:         data = response.json()
+40:         return data['results']
+41:     return []
+```
+- **Line 26**: A normal Python function (not a route). It takes a search word (e.g., "pasta").
+- **Lines 27-35**: Sets up the "phone call" to Spoonacular. It prepares the URL and the data they require (API key, query, how many results).
+- **Line 37**: `requests.get`. Actually sends the request over the internet.
+- **Lines 38-40**: Checks if the call was successful (Status 200 means "OK"). If yes, it converts the response to JSON (data format) and returns the list of recipes.
+
+### The View Recipe Route
+```python
+43: @app.route('/recipe/<int:recipe_id>')
+44: def view_recipe(recipe_id):
+```
+- **Line 43**: A dynamic route. `<int:recipe_id>` is a placeholder. If you go to `/recipe/12345`, Flask grabs `12345` and passes it to the function as `recipe_id`.
+
+```python
+46:     url = f'https://api.spoonacular.com/recipes/{recipe_id}/information'
+...
+54:         return render_template('view_recipe.html', recipe=recipe, search_query=search_query)
+```
+- **Line 46**: Asks Spoonacular for details about *that specific* recipe ID.
+- **Line 54**: Loads a *different* HTML page: [view_recipe.html](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/templates/view_recipe.html).
+
+### Running the App
+```python
+57: if __name__ == '__main__':
+58:     app.run(debug=True)
+```
+- **Lines 57-58**: Starts the web server if you run this file directly. `debug=True` means if you crash the app, it will show you the error in the browser (helpful for development).
+
+---
+
+## 3. Frontend Explanation ([templates/index.html](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/templates/index.html))
+This is the "face" of your app. It uses **HTML** for structure, **CSS** for style, and **Jinja2** (the `{}` stuff) to show data from Python.
+
+### Structure & Style
+```html
+1: <!DOCTYPE html>
+2: <html lang="en">
+3: <head>
+...
+6:     <style>
+...
+66:     </style>
+67: </head>
+```
+- Standard HTML setup. The `<style>` block (Lines 6-66) defines how things look (colors, centering, margins).
+
+### The Search Form
+```html
+70:     <form method="POST" action="/">
+71:         <input type="text" name="search_query" placeholder="Search for recipes">
+72:         <input type="submit" value="Search">
+73:         <a href="/home" class="home-button">Home</a>
+74:     </form>
+```
+- **Line 70**: `<form>`. This is the interactive part.
+    - `method="POST"`: Tells the browser "Send this data secretly/in the background" (not in the URL bar usually).
+    - `action="/"`: Tells the browser "Send this data to the `/` route in [app.py](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py)".
+- **Line 71**: The text box. `name="search_query"` is **crucial**. This matches `request.form.get('search_query')` in Python.
+
+### Displaying Results (The "Loop")
+```html
+77:     {% if recipes%}
+78:     <h2>Results for "{{ search_query }}"</h2>
+79:     <ul>
+80:         {% for recipe in recipes %}
+81:         <li>
+82:             <h3 class="recipe-title">{{ recipe.title }}</h3>
+...
+86:             <a href="{{ url_for('view_recipe', recipe_id=recipe.id, search_query=search_query) }}">View</a>
+87:         </li>
+88:         {% endfor %}
+89:     </ul>
+```
+- **Line 77**: `{% if recipes %}`. This is **Jinja2**. It runs on the server *before* the HTML is sent to the user. It says: "Only show this section if the [recipes](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py#26-42) list is not empty."
+- **Line 80**: `{% for recipe in recipes %}`. A loop! It repeats the HTML code inside it for *every* recipe found.
+- **Line 82**: `{{ recipe.title }}`. Takes the title from the Python dictionary and puts it into the HTML.
+- **Line 86**: Creates a link to view details. `url_for` is a Flask helper helping to generate the correct link like `/recipe/716429`.
+
+---
+
+## 4. How Frontend & Backend Connect
+
+Imagine a restaurant:
+1.  **The User (Customer)**: Sits at a table (the Browser) and looks at the Menu (Frontend).
+2.  **The Waiter (HTTP Request)**: The customer gives an order ("I want pasta"). The waiter writes it down and takes it to the kitchen.
+3.  **The Kitchen (Backend/Flask)**: Receives the order. The Chef ([app.py](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py)) looks at the order.
+    - The Chef realizes they need ingredients. They call the Supplier (Spoonacular API).
+    - The Supplier sends the ingredients (Data).
+    - The Chef cooks the meal (Processes data, potentially formatting it).
+4.  **The Waiter (HTTP Response)**: The Chef gives the finished plate (HTML with data) to the Waiter.
+5.  **The User**: The Waiter places the food on the table. The user sees "Spaghetti Carbonara" on their screen.
+
+### "If we do this, what happens..."
+
+**Scenario A: You click "Search"**
+1.  **Frontend**: The browser packages the text you typed into a packet.
+2.  **Connection**: It sends a `POST` request to `http://localhost:5000/`.
+3.  **Backend**:
+    - [app.py](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/app.py) sees the request.
+    - Captures `search_query` from the packet.
+    - Runs `requests.get(...)` to Spoonacular.
+    - Receives a list of JSON recipes.
+    - Opens [index.html](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/templates/index.html).
+    - **Injects** that list into the `{% for %}` loop in the HTML.
+4.  **Result**: It sends the *filled-out* HTML back. You see 10 recipes on the screen.
+
+**Scenario B: You click a Recipe Title**
+1.  **Frontend**: You click a link like `<a href="/recipe/123">`.
+2.  **Connection**: Browser sends a `GET` request to `/recipe/123`.
+3.  **Backend**:
+    - Flask matches the route `/recipe/<int:recipe_id>`.
+    - It extracts `123` as the ID.
+    - It asks Spoonacular: "Give me details for recipe 123".
+    - It gets the details (ingredients, instructions).
+    - It fills out [view_recipe.html](file:///c:/Users/priya/OneDrive/Desktop/recipe_app/templates/view_recipe.html) with those specific details.
+4.  **Result**: You see the full recipe page.
